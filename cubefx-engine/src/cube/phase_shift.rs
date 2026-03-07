@@ -52,11 +52,14 @@ pub fn phase_shift_launch<R: Runtime>(
     alpha: f32,
     dtype: StorageType,
 ) -> Result<(), LaunchError> {
-    let cube_count = CubeCount::new_single();
+    let nb_threads = input_re.shape[0] * input_re.shape[1];
+
+    let cube_count = CubeCount::new_1d(nb_threads as u32);
     let cube_dim = CubeDim::new_single();
     let vectorization = 1;
 
-    phase_shift_kernel::launch::<R>(
+
+    phase_shift_kernel_v2::launch::<R>(
         &client,
         cube_count,
         cube_dim,
@@ -93,6 +96,31 @@ pub(crate) fn phase_shift_kernel<F: Float>(
     }
 }
 
+#[cube(launch)]
+/// Kernel that loops over each window and applies the effect on each
+pub(crate) fn phase_shift_kernel_v2<F: Float>(
+    input_re: &Tensor<Line<F>>,
+    input_im: &Tensor<Line<F>>,
+    output_re: &mut Tensor<Line<F>>,
+    output_im: &mut Tensor<Line<F>>,
+    alpha: InputScalar,
+    #[define(F)] _dtype: StorageType,
+) {
+    // let windows = input_re.shape(0);
+    // let channels = input_re.shape(1);
+    let window_index = CUBE_POS;
+    // for window_index in 0..windows * channels {
+        phase_shift_kernel_one_window(
+            input_re,
+            input_im,
+            output_re,
+            output_im,
+            window_index,
+            alpha,
+        );
+    // }
+}
+
 #[cube]
 /// Applies the effect on one window.
 /// Iterates on the frequency bins and applies the scaled phase shift to each
@@ -119,7 +147,7 @@ pub(crate) fn phase_shift_kernel_one_window<F: Float>(
     // We do it 10 times just to make sure
     for k in 0..10 * num_freq_bins {
         let k = k % num_freq_bins;
-
+        // let k = 0;
         // Warning: if line size > 1, this will duplicate the same k, while we would want something like [x, x+1, x+2, x+3...
         let theta = Line::cast_from(alpha.get::<F>() * F::cast_from(k));
 
