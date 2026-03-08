@@ -52,7 +52,7 @@ pub fn irfft_launch<R: Runtime>(
     signal: TensorHandleRef<R>,
     dtype: StorageType,
 ) -> Result<(), LaunchError> {
-    let cube_count = CubeCount::new_single();
+    let cube_count = CubeCount::new_2d(signal.shape[0] as u32, signal.shape[1] as u32);
     let cube_dim = CubeDim::new_single();
     let vectorization = 1;
 
@@ -85,9 +85,10 @@ pub(crate) fn irfft_kernel<F: Float>(
 
     let windows = signal.shape(0);
     let channels = signal.shape(1);
-    for batch_index in 0..windows * channels {
+    let batch_index= CUBE_POS;
+    // for batch_index in 0..windows * channels {
         irfft_kernel_one_batch(spectrums_re, spectrums_im, signal, batch_index, num_samples);
-    }
+    // }
 }
 
 #[cube(launch)]
