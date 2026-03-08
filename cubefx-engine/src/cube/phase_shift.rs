@@ -3,7 +3,7 @@ use cubecl::{
     std::tensor::{AsView as _, AsViewExpand, AsViewMut, AsViewMutExpand, TensorHandle},
 };
 
-use crate::cube::BatchSignalLayout;
+use crate::cube::{BatchSignalLayout, rfft_kernel_one_window};
 
 /// Per-bin phase shift effect kernel
 ///
@@ -120,6 +120,41 @@ pub(crate) fn phase_shift_kernel_v2<F: Float>(
         );
     // }
 }
+
+#[cube(launch)]
+/// Kernel that loops over each window and applies the effect on each
+pub(crate) fn phase_shift_kernel_rfft_phaseshifted<F: Float>(
+    signal: &Tensor<Line<F>>,
+    input_re: &mut Tensor<Line<F>>,
+    input_im: &mut Tensor<Line<F>>,
+    output_re: &mut Tensor<Line<F>>,
+    output_im: &mut Tensor<Line<F>>,
+    alpha: InputScalar,
+    #[define(F)] _dtype: StorageType,
+    #[comptime] num_samples: usize,
+) {
+    // let windows = input_re.shape(0);
+    // let channels = input_re.shape(1);
+    let window_index = CUBE_POS;
+    // for window_index in 0..windows * channels {
+        rfft_kernel_one_window(
+            signal,
+            input_re,
+            input_im,
+            window_index,
+            num_samples,
+        );
+        phase_shift_kernel_one_window(
+            input_re,
+            input_im,
+            output_re,
+            output_im,
+            window_index,
+            alpha,
+        );
+    // }
+}
+
 
 #[cube]
 /// Applies the effect on one window.
