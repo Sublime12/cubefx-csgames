@@ -52,11 +52,13 @@ pub fn phase_shift_launch<R: Runtime>(
     alpha: f32,
     dtype: StorageType,
 ) -> Result<(), LaunchError> {
-    let nb_threads = input_re.shape[0] * input_re.shape[1];
+    // let nb_threads =  * input_re.shape[1];
 
-    let cube_count = CubeCount::new_1d(nb_threads as u32);
+    let cube_count = CubeCount::new_2d(input_re.shape[0] as u32, input_re.shape[1] as u32);
+    // let cube_dim = CubeDim::new_1d(input_re.shape[2] as u32);
     let cube_dim = CubeDim::new_single();
     let vectorization = 1;
+    // let cube_dim =  CubeDim::new_1d(input_re.shape[2] as u32 / vectorization as u32);
 
 
     phase_shift_kernel_v2::launch::<R>(
@@ -146,6 +148,7 @@ pub(crate) fn phase_shift_kernel_one_window<F: Float>(
 
     // We do it 10 times just to make sure
     for k in 0..num_freq_bins {
+        // let k = CUBE_POS;
         // let k = k % num_freq_bins;
         // let k = num_freq_bins;
         // Warning: if line size > 1, this will duplicate the same k, while we would want something like [x, x+1, x+2, x+3...
