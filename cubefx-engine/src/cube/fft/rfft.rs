@@ -90,8 +90,8 @@ pub(crate) fn rfft_kernel<F: Float>(
     // - spectrums have shape [windows, channels, num_freq_bins]
     //      with num_freq_bins = num_samples / 2 + 1
 
-    let windows = signal.shape(0);
-    let channels = signal.shape(1);
+    // let windows = signal.shape(0);
+    // let channels = signal.shape(1);
 
     let window_index = CUBE_POS;
     // for window_index in 0..windows * channels {

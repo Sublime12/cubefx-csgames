@@ -83,8 +83,8 @@ pub(crate) fn irfft_kernel<F: Float>(
     // - signal has shape: [windows, channels, num_samples]
     //      with num_samples a power of 2 larger than 8
 
-    let windows = signal.shape(0);
-    let channels = signal.shape(1);
+    // let windows = signal.shape(0);
+    // let channels = signal.shape(1);
     let batch_index= CUBE_POS;
     // for batch_index in 0..windows * channels {
         irfft_kernel_one_batch(spectrums_re, spectrums_im, signal, batch_index, num_samples);

@@ -55,10 +55,8 @@ pub fn phase_shift_launch<R: Runtime>(
     // let nb_threads =  * input_re.shape[1];
 
     let cube_count = CubeCount::new_2d(input_re.shape[0] as u32, input_re.shape[1] as u32);
-    // let cube_dim = CubeDim::new_1d(input_re.shape[2] as u32);
     let cube_dim = CubeDim::new_single();
     let vectorization = 1;
-    // let cube_dim =  CubeDim::new_1d(input_re.shape[2] as u32 / vectorization as u32);
 
 
     phase_shift_kernel_v2::launch::<R>(
