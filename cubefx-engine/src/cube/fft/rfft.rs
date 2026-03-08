@@ -59,7 +59,7 @@ pub fn rfft_launch<R: Runtime>(
     spectrum_im: TensorHandleRef<R>,
     dtype: StorageType,
 ) -> Result<(), LaunchError> {
-    let cube_count = CubeCount::new_single();
+    let cube_count = CubeCount::new_2d(signal.shape[0] as u32, signal.shape[1] as u32);
     let cube_dim = CubeDim::new_single();
     let vectorization = 1;
 
@@ -92,7 +92,9 @@ pub(crate) fn rfft_kernel<F: Float>(
 
     let windows = signal.shape(0);
     let channels = signal.shape(1);
-    for window_index in 0..windows * channels {
+
+    let window_index = CUBE_POS;
+    // for window_index in 0..windows * channels {
         rfft_kernel_one_window(
             signal,
             spectrums_re,
@@ -100,7 +102,7 @@ pub(crate) fn rfft_kernel<F: Float>(
             window_index,
             num_samples,
         );
-    }
+    // }
 }
 
 #[cube]
